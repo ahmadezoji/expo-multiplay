@@ -3,45 +3,56 @@ package expo.modules.multiplay
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
+import android.media.AudioManager
+import android.media.MediaPlayer
+import android.content.Context
+
+import android.net.Uri
+
+
 class ExpoMultiplayModule : Module() {
-  // Each module class must implement the definition function. The definition consists of components
-  // that describes the module's functionality and behavior.
-  // See https://docs.expo.dev/modules/module-api for more details about available components.
   override fun definition() = ModuleDefinition {
-    // Sets the name of the module that JavaScript code will use to refer to the module. Takes a string as an argument.
-    // Can be inferred from module's class name, but it's recommended to set it explicitly for clarity.
-    // The module will be accessible from `requireNativeModule('ExpoMultiplay')` in JavaScript.
     Name("ExpoMultiplay")
-
-    // Sets constant properties on the module. Can take a dictionary or a closure that returns a dictionary.
-    Constants(
-      "PI" to Math.PI
-    )
-
-    // Defines event names that the module can send to JavaScript.
-    Events("onChange")
-
-    // Defines a JavaScript synchronous function that runs the native code on the JavaScript thread.
+   
     Function("hello") {
-      "Hello world! 👋"
+      return@Function "hello saamm"
     }
-
-    // Defines a JavaScript function that always returns a Promise and whose native code
-    // is by default dispatched on the different thread than the JavaScript runtime runs on.
-    AsyncFunction("setValueAsync") { value: String ->
-      // Send an event to JavaScript.
-      sendEvent("onChange", mapOf(
-        "value" to value
-      ))
-    }
-
-    // Enables the module to be used as a native view. Definition components that are accepted as part of
-    // the view definition: Prop, Events.
-    View(ExpoMultiplayView::class) {
-      // Defines a setter for the `name` prop.
-      Prop("name") { view: ExpoMultiplayView, prop: String ->
-        println(prop)
+    Function("init") {
+      val activity = appContext.activityProvider?.currentActivity
+      val applicationContext = activity?.applicationContext
+      if(applicationContext != null) {
+        val audioManager = applicationContext.applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 20, 0)
       }
+     
+//      Toast.makeText(applicationContext, "init success", Toast.LENGTH_SHORT).show()
+      return@Function "init lib success"
     }
+
+    Function("play") { path: String ->
+      play(path);
+    }
+
   }
+  fun play(path: String) {
+    try {
+      val activity = appContext.activityProvider?.currentActivity
+      val applicationContext = activity?.applicationContext
+      if(applicationContext != null) {
+        var mediaPlayer: MediaPlayer? = MediaPlayer()
+        mediaPlayer?.setAudioStreamType(AudioManager.STREAM_MUSIC)
+        mediaPlayer?.setDataSource(
+          applicationContext,
+            Uri.parse(path)
+        );
+        mediaPlayer?.prepare();
+        mediaPlayer!!.isLooping = true
+        mediaPlayer!!.start()
+      }
+
+    } catch (e: Exception) {
+//            Toast.makeText(this, e.message.toString(), Toast.LENGTH_SHORT).show()
+    }
+}
+ 
 }
